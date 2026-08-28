@@ -4,6 +4,7 @@
   "description": "Panel de control centralizado para apps del ecosistema Safe Demo",
   "main": "server.js",
   "scripts": {
+    "serve": "node server.js",
     "start": "node server.js",
     "dev": "node server.js"
   },

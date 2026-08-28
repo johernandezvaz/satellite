@@ -17,7 +17,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-const PORT = 4570;
+const PORT = process.env.PORT || 4570;
+const HOST = process.env.HOST || '0.0.0.0';
 
 
 const ERROR_PATTERNS = [
@@ -570,8 +571,10 @@ async function bootstrap() {
       }
     }
 
-    server.listen(PORT, () => {
-      console.log(`\n  Satellite corriendo en \x1b[36mhttp://localhost:${PORT}\x1b[0m\n`);
+    server.listen(PORT, HOST, () => {
+      console.log(`\n  🛰️  Satellite corriendo en:`);
+      console.log(`     Local:   \x1b[36mhttp://localhost:${PORT}\x1b[0m`);
+      console.log(`     Red:     \x1b[36mhttp://10.33.31.90:${PORT}\x1b[0m\n`);
     });
   } catch (err) {
     console.error('\n  [ERROR] No se pudo iniciar Satellite:', err.message);

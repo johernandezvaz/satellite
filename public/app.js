@@ -207,7 +207,7 @@ function cardInnerHTML(app) {
   const updateTitle = !stopped ? 'Detén la app primero' : 'git pull origin main';
 
   const footerLeft = running
-    ? `<a class="open-link" href="http://localhost:${portVal}" target="_blank" rel="noopener">
+    ? `<a class="open-link" href="http://${location.hostname || 'localhost'}:${portVal}" target="_blank" rel="noopener">
          <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
            <path d="M4.5 1H1v9h9V7M7 1h3v3M10 1L5.5 5.5"/>
          </svg>
