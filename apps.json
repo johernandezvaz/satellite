@@ -1,0 +1,44 @@
+[
+  {
+    "id": "gestion-comedor",
+    "name": "Gestion Comedor",
+    "path": "C:\\Users\\JOHERNANDEZ\\Documents\\codigos\\gestion-comedor",
+    "port": 4551,
+    "packageManager": "npm"
+  },
+  {
+    "id": "capacitacion-rh",
+    "name": "Capacitacion RH",
+    "path": "C:\\Users\\JOHERNANDEZ\\Documents\\codigos\\capacitacion-rh",
+    "port": 4552,
+    "packageManager": "pnpm"
+  },
+  {
+    "id": "kpi-dashboard",
+    "name": "KPI Dashboard",
+    "path": "C:\\Users\\JOHERNANDEZ\\Documents\\codigos\\db_data\\kpi-dashboard",
+    "port": 4554,
+    "packageManager": "npm"
+  },
+  {
+    "id": "sistema-entrada",
+    "name": "Sistema Entrada",
+    "path": "C:\\Users\\JOHERNANDEZ\\Documents\\codigos\\sistema-entrada",
+    "port": 4555,
+    "packageManager": "npm"
+  },
+  {
+    "id": "sistema-tickets",
+    "name": "Sistema Tickets",
+    "path": "C:\\Users\\JOHERNANDEZ\\Documents\\codigos\\sistema-tickets",
+    "port": 4559,
+    "packageManager": "pnpm"
+  },
+  {
+    "id": "auditoria-app",
+    "name": "Auditoria App",
+    "path": "C:\\Users\\JOHERNANDEZ\\Documents\\codigos\\auditoria_app",
+    "port": 4561,
+    "packageManager": "pnpm"
+  }
+]

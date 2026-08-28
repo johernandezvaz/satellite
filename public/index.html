@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Satellite — Panel de Control</title>
+  <meta name="description" content="Panel centralizado de gestión para aplicaciones del ecosistema Safe Demo." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <header class="header" role="banner">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div>
+          <div class="brand-name">Satellite</div>
+          <div class="brand-sub">Panel de Control</div>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="conn-badge" id="connBadge" role="status" aria-live="polite">
+          <span class="conn-dot"></span>
+          <span id="connLabel">Conectando...</span>
+        </div>
+
+        <div class="user-info" id="userInfo" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round">
+            <circle cx="6.5" cy="4.5" r="2.5" />
+            <path d="M1 12c0-3.03 2.46-5.5 5.5-5.5S12 8.97 12 12" />
+          </svg>
+          <span id="userEmail"></span>
+        </div>
+
+        <button class="btn btn-primary" id="addAppBtn" onclick="openAddModal()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M6 1v10M1 6h10" />
+          </svg>
+          Agregar App
+        </button>
+
+        <button class="btn btn-ghost" id="logoutBtn" onclick="doLogout()" title="Cerrar sesión" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8.5 1H11a1 1 0 011 1v9a1 1 0 01-1 1H8.5M5.5 9.5L8 7 5.5 4.5M8 7H1" />
+          </svg>
+          Salir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-wrap" role="region" aria-label="Estadísticas">
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-n" id="statTotal">0</span>
+        <span class="stat-lbl">Total</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n c-green" id="statRunning">0</span>
+        <span class="stat-lbl">Corriendo</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n c-slate" id="statStopped">0</span>
+        <span class="stat-lbl">Detenidas</span>
+      </div>
+      <div class="stat">
+        <span class="stat-n c-red" id="statErrors">0</span>
+        <span class="stat-lbl">Con Errores</span>
+      </div>
+    </div>
+  </div>
+
+  <main class="main" role="main">
+    <div class="section-header">
+      <span class="section-title">Aplicaciones registradas</span>
+    </div>
+
+    <div class="apps-grid" id="appsGrid" aria-label="Lista de aplicaciones"></div>
+
+    <div class="empty-state" id="emptyState" style="display:none" role="status">
+      <div class="empty-icon">
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="16" cy="16" r="5" />
+          <path d="M16 2v4M16 26v4M2 16h4M26 16h4" />
+          <path d="M6.34 6.34l2.83 2.83M22.83 22.83l2.83 2.83M6.34 25.66l2.83-2.83M22.83 9.17l2.83-2.83" opacity=".5" />
+        </svg>
+      </div>
+      <h2>Sin aplicaciones registradas</h2>
+      <p>Agrega tu primera app para comenzar a gestionarla</p>
+      <button class="btn btn-primary" onclick="openAddModal()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round">
+          <path d="M6 1v10M1 6h10" />
+        </svg>
+        Agregar App
+      </button>
+    </div>
+  </main>
+
+  <div class="overlay" id="drawerOverlay" onclick="closeDrawer()" aria-hidden="true"></div>
+
+  <aside class="drawer" id="errorDrawer" role="complementary" aria-label="Panel de errores">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-title" id="drawerTitle">Errores</div>
+        <div class="drawer-sub" id="drawerSub">—</div>
+      </div>
+      <div class="drawer-acts">
+        <button class="btn btn-ghost" onclick="clearErrors()" id="clearErrBtn">Limpiar</button>
+        <button class="btn-icon" onclick="closeDrawer()" aria-label="Cerrar panel">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round">
+            <path d="M1 1l12 12M13 1L1 13" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="err-log" id="errLog" role="log" aria-live="polite"></div>
+
+    <div class="err-empty" id="errEmpty">
+      <div class="err-empty-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M5 10l4 4 6-7" />
+        </svg>
+      </div>
+      <p>Sin errores registrados</p>
+    </div>
+  </aside>
+
+  <div class="modal-overlay" id="modalOverlay" onclick="closeAddModal()" aria-hidden="true"></div>
+
+  <div class="modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="modalTitleText">
+    <div class="modal-head">
+      <h2 class="modal-title" id="modalTitleText">Agregar Aplicación</h2>
+      <button class="btn-icon" onclick="closeAddModal()" aria-label="Cerrar modal">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round">
+          <path d="M1 1l12 12M13 1L1 13" />
+        </svg>
+      </button>
+    </div>
+    <form class="modal-form" id="addForm" onsubmit="submitAddApp(event)" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="inputName">Nombre de la aplicación</label>
+        <input type="text" id="inputName" class="form-input" placeholder="Ej. Mi App" autocomplete="off" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="inputPath">Ruta absoluta del directorio</label>
+        <input type="text" id="inputPath" class="form-input" placeholder="C:\Users\...\mi-app" autocomplete="off"
+          required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="inputPort">Puerto</label>
+          <input type="number" id="inputPort" class="form-input" placeholder="4560" min="1024" max="65535" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputPm">Package Manager</label>
+          <select id="inputPm" class="form-input">
+            <option value="npm">npm</option>
+            <option value="pnpm">pnpm</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeAddModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="addSubmitBtn">Agregar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-overlay" id="editModalOverlay" onclick="closeEditModal()" aria-hidden="true"></div>
+
+  <div class="modal" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitleText">
+    <div class="modal-head">
+      <h2 class="modal-title" id="editModalTitleText">Editar Aplicación</h2>
+      <button class="btn-icon" onclick="closeEditModal()" aria-label="Cerrar modal">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round">
+          <path d="M1 1l12 12M13 1L1 13" />
+        </svg>
+      </button>
+    </div>
+    <form class="modal-form" id="editForm" onsubmit="submitEditApp(event)" novalidate>
+      <input type="hidden" id="editAppId" />
+      <div class="form-group">
+        <label class="form-label" for="editInputName">Nombre de la aplicación</label>
+        <input type="text" id="editInputName" class="form-input" placeholder="Ej. Mi App" autocomplete="off" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="editInputPath">Ruta absoluta del directorio</label>
+        <input type="text" id="editInputPath" class="form-input" placeholder="C:\Users\...\mi-app" autocomplete="off"
+          required />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="editInputPort">Puerto</label>
+          <input type="number" id="editInputPort" class="form-input" placeholder="4560" min="1024" max="65535"
+            required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="editInputPm">Package Manager</label>
+          <select id="editInputPm" class="form-input">
+            <option value="npm">npm</option>
+            <option value="pnpm">pnpm</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="editSubmitBtn">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toasts" id="toastContainer" aria-live="assertive" aria-atomic="true"></div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
