@@ -231,10 +231,18 @@ function startApp(id) {
   setState(id, { status: 'starting', startTime: Date.now(), errorCount: 0, errors: [] });
   broadcast({ type: 'status', id, status: 'starting' });
 
+  const childEnv = { ...process.env };
+  for (const file of ENV_FILES) {
+    const full = path.join(appData.path, file);
+    const appVars = parseEnvFile(full);
+    Object.assign(childEnv, appVars);
+  }
+
   let proc;
   try {
     proc = spawn(cmd, ['run', 'serve'], {
       cwd: appData.path,
+      env: childEnv,
       shell: true,
       windowsHide: true,
     });
