@@ -1,4 +1,4 @@
-# 🛰️ Satellite — Control Center & Process Manager
+# Satellite — Control Center & Process Manager
 
 **Satellite** es un panel de control centralizado y gestor de procesos diseñado para administrar el ecosistema de aplicaciones (Next.js / Node.js) de **Safe Demo**. Permite iniciar, detener, reiniciar, actualizar vía Git y monitorear en tiempo real el estado, puertos, errores, uptime y bases de datos de cada servicio administrado.
 
