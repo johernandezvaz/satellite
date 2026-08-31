@@ -66,6 +66,61 @@ const DB_VARS = [
   'MONGO_URI',
 ];
 
+// Directorio donde se persisten los PIDs de los procesos hijos
+const PIDS_DIR = path.join(__dirname, '.satellite-pids');
+
+function savePid(id, pid) {
+  try {
+    fs.mkdirSync(PIDS_DIR, { recursive: true });
+    fs.writeFileSync(path.join(PIDS_DIR, `${id}.pid`), String(pid), 'utf8');
+  } catch { }
+}
+
+function loadPid(id) {
+  try {
+    const raw = fs.readFileSync(path.join(PIDS_DIR, `${id}.pid`), 'utf8').trim();
+    return parseInt(raw, 10) || null;
+  } catch { return null; }
+}
+
+function clearPid(id) {
+  try { fs.unlinkSync(path.join(PIDS_DIR, `${id}.pid`)); } catch { }
+}
+
+function isProcessAlive(pid) {
+  try { process.kill(pid, 0); return true; } catch { return false; }
+}
+
+function isPortInUse(port) {
+  return new Promise((resolve) => {
+    const s = new net.Socket();
+    s.setTimeout(500);
+    s.on('connect', () => { s.destroy(); resolve(true); });
+    s.on('error', () => resolve(false));
+    s.on('timeout', () => { s.destroy(); resolve(false); });
+    try { s.connect(port, '127.0.0.1'); } catch { resolve(false); }
+  });
+}
+
+function getPidFromPort(port) {
+  return new Promise((resolve) => {
+    const cmd = process.platform === 'win32'
+      ? `netstat -ano | findstr :${port}`
+      : `lsof -ti :${port} -sTCP:LISTEN`;
+    exec(cmd, { shell: true }, (err, stdout) => {
+      if (err || !stdout.trim()) return resolve(null);
+      if (process.platform === 'win32') {
+        for (const line of stdout.split('\n')) {
+          const m = line.match(/LISTENING\s+(\d+)/);
+          if (m) return resolve(parseInt(m[1], 10));
+        }
+        return resolve(null);
+      }
+      resolve(parseInt(stdout.trim().split('\n')[0], 10) || null);
+    });
+  });
+}
+
 function parseEnvFile(filePath) {
   const vars = {};
   try {
@@ -255,6 +310,7 @@ function startApp(id) {
 
   childProcs[id] = proc;
   setState(id, { pid: proc.pid });
+  savePid(id, proc.pid);
 
   const handleOutput = (data) => {
     const lines = data.toString().split('\n');
@@ -277,6 +333,7 @@ function startApp(id) {
   proc.stderr.on('data', handleOutput);
 
   proc.on('close', (code) => {
+    clearPid(id);
     const current = getState(id);
     if (current.status !== 'stopped') {
       const newStatus = (code === 0 || code === null) ? 'stopped' : 'error';
@@ -317,6 +374,7 @@ function stopApp(id) {
     });
     delete childProcs[id];
   }
+  clearPid(id);
 
   setState(id, { status: 'stopped', pid: null });
   broadcast({ type: 'status', id, status: 'stopped' });
@@ -570,12 +628,36 @@ async function bootstrap() {
     await loadApps();
     console.log(`  ${apps.length} app(s) cargadas.`);
 
-
+    // Sincronizar info de BD para cada app
     for (const appData of apps) {
       const database = detectDatabase(appData.path);
       if (database.type !== appData.database?.type || database.name !== appData.database?.name) {
         appData.database = database;
         await db.updateAppDB(appData.id, database.type, database.name);
+      }
+    }
+
+    // Recuperar procesos que seguían corriendo antes del reinicio de satellite
+    console.log('  Verificando apps en ejecución...');
+    for (const appData of apps) {
+      const inUse = await isPortInUse(appData.port);
+      if (!inUse) continue;
+
+      let pid = loadPid(appData.id);
+      if (!pid || !isProcessAlive(pid)) {
+        pid = await getPidFromPort(appData.port);
+      }
+
+      if (pid) {
+        childProcs[appData.id] = { pid };
+        savePid(appData.id, pid);
+        setState(appData.id, { status: 'running', pid, startTime: null, errorCount: 0, errors: [] });
+        startPeriodicCheck(appData.id, appData.port);
+        console.log(`    ↩  ${appData.name} recuperada (PID ${pid})`);
+      } else {
+        // Puerto ocupado pero no logramos obtener el PID — marcamos como corriendo
+        setState(appData.id, { status: 'running', pid: null, startTime: null, errorCount: 0, errors: [] });
+        console.log(`    ↩  ${appData.name} corriendo (PID desconocido)`);
       }
     }
 
